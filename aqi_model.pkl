@@ -1,1 +1,0 @@
-pickle.dump(model, open("aqi_model.pkl","wb"))
