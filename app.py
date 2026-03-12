@@ -13,31 +13,45 @@ DATA_FILE = os.path.join(BASE_DIR, "data", "air_quality_data.csv")
 MODEL_FILE = os.path.join(BASE_DIR, "aqi_model.pkl")
 
 # -----------------------------
-# Function to normalize columns
+# Flexible column mapping
 # -----------------------------
-def normalize_columns(df):
-    df.columns = [col.strip().replace(" ", "").replace("µg/m³","").replace("ppb","").replace("ppm","").upper() for col in df.columns]
-    return df
+COLUMN_MAP = {
+    'PM25': ['pm25', 'pm2.5', 'pm_25', 'pm_2_5'],
+    'PM10': ['pm10', 'pm_10'],
+    'NO2': ['no2', 'no_2'],
+    'SO2': ['so2', 'so_2'],
+    'CO': ['co'],
+    'AQI': ['aqi']
+}
+
+def normalize_and_map_columns(df):
+    # Lowercase and remove spaces/units
+    df.columns = [c.strip().lower().replace(" ", "").replace("µg/m³","").replace("ppb","").replace("ppm","") for c in df.columns]
+    mapped_cols = {}
+    for target, variants in COLUMN_MAP.items():
+        for var in variants:
+            if var in df.columns:
+                mapped_cols[target] = var
+                break
+    return df, mapped_cols
 
 # -----------------------------
 # Function to train and save model
 # -----------------------------
 def train_and_save_model():
     if not os.path.exists(DATA_FILE):
-        st.error(f"Data file '{DATA_FILE}' not found. Make sure your CSV exists.")
+        st.error(f"Data file '{DATA_FILE}' not found.")
         st.stop()
     
     data = pd.read_csv(DATA_FILE)
-    data = normalize_columns(data)
-
-    # Expected columns after normalization
-    required_columns = ['PM25','PM10','NO2','SO2','CO','AQI']
-    if not all(col in data.columns for col in required_columns):
-        st.error(f"CSV must contain columns: {required_columns} (case-insensitive, spaces removed)")
+    data, mapped_cols = normalize_and_map_columns(data)
+    
+    if len(mapped_cols) < len(COLUMN_MAP):
+        st.error(f"CSV missing required columns. Detected: {list(mapped_cols.keys())}")
         st.stop()
     
-    X = data[['PM25','PM10','NO2','SO2','CO']]
-    y = data['AQI']
+    X = data[[mapped_cols['PM25'], mapped_cols['PM10'], mapped_cols['NO2'], mapped_cols['SO2'], mapped_cols['CO']]]
+    y = data[mapped_cols['AQI']]
     
     model = LinearRegression()
     model.fit(X, y)
@@ -69,7 +83,6 @@ st.set_page_config(page_title="AQI Prediction App", layout="centered")
 st.title("🌫️ Air Quality Index (AQI) Prediction")
 st.write("Enter pollutant values to predict AQI:")
 
-# Input columns
 col1, col2 = st.columns(2)
 
 with col1:
