@@ -6,11 +6,18 @@ from sklearn.linear_model import LinearRegression
 import os
 
 # -----------------------------
-# Project paths (robust for cloud)
+# Project paths
 # -----------------------------
 BASE_DIR = os.path.dirname(__file__)
 DATA_FILE = os.path.join(BASE_DIR, "data", "air_quality_data.csv")
 MODEL_FILE = os.path.join(BASE_DIR, "aqi_model.pkl")
+
+# -----------------------------
+# Function to normalize columns
+# -----------------------------
+def normalize_columns(df):
+    df.columns = [col.strip().replace(" ", "").replace("µg/m³","").replace("ppb","").replace("ppm","").upper() for col in df.columns]
+    return df
 
 # -----------------------------
 # Function to train and save model
@@ -21,13 +28,15 @@ def train_and_save_model():
         st.stop()
     
     data = pd.read_csv(DATA_FILE)
-    
-    required_columns = ['PM2.5','PM10','NO2','SO2','CO','AQI']
+    data = normalize_columns(data)
+
+    # Expected columns after normalization
+    required_columns = ['PM25','PM10','NO2','SO2','CO','AQI']
     if not all(col in data.columns for col in required_columns):
-        st.error(f"CSV must contain columns: {required_columns}")
+        st.error(f"CSV must contain columns: {required_columns} (case-insensitive, spaces removed)")
         st.stop()
     
-    X = data[['PM2.5','PM10','NO2','SO2','CO']]
+    X = data[['PM25','PM10','NO2','SO2','CO']]
     y = data['AQI']
     
     model = LinearRegression()
@@ -47,10 +56,8 @@ def load_or_train_model():
         try:
             return pickle.load(open(MODEL_FILE, "rb"))
         except:
-            # If model file is corrupted, train a new one
             return train_and_save_model()
     else:
-        # If model file missing, train new
         return train_and_save_model()
 
 model = load_or_train_model()
