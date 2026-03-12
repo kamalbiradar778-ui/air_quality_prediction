@@ -1,19 +1,11 @@
 import pandas as pd
-from sklearn.linear_model import LinearRegression
-import pickle
+import os
 
-# Load dataset
-data = pd.read_csv("data/air_quality.csv")  # Make sure this path exists
+# Get the directory where train_model.py is located
+base_dir = os.path.dirname(__file__)
 
-# Features and target
-X = data[['PM2.5','PM10','NO2','SO2','CO']]
-y = data['AQI']
+# Correct path to the CSV
+file_path = os.path.join(base_dir, "data", "air_quality_data.csv")
 
-# Train Linear Regression model
-model = LinearRegression()
-model.fit(X, y)
-
-# Save the trained model
-pickle.dump(model, open("aqi_model.pkl","wb"))
-
-print("✅ Model trained and saved as aqi_model.pkl")
+# Load the data
+data = pd.read_csv(file_path)
