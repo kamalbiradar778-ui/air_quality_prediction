@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Air Quality Prediction</title>
+</head>
+
+<body>
+
+<h1>Air Quality Prediction</h1>
+
+<form action="/predict" method="post">
+
+    <label>PM2.5:</label>
+    <input type="text" name="pm25"><br><br>
+
+    <label>PM10:</label>
+    <input type="text" name="pm10"><br><br>
+
+    <label>NO2:</label>
+    <input type="text" name="no2"><br><br>
+
+    <label>SO2:</label>
+    <input type="text" name="so2"><br><br>
+
+    <label>CO:</label>
+    <input type="text" name="co"><br><br>
+
+    <button type="submit">Predict AQI</button>
+
+</form>
+
+</body>
+</html>
