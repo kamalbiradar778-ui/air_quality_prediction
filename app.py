@@ -9,17 +9,32 @@ import os
 # Project paths
 # ------------------------
 MODEL_FILE = "aqi_model.pkl"
-DATA_FILE = "data/air_quality.csv"
+DATA_FILE = "air_quality_data.csv"  # Updated to match your file
+
+# ------------------------
+# Function to create dummy data (if CSV missing)
+# ------------------------
+def create_dummy_data():
+    df = pd.DataFrame({
+        'PM2.5': np.random.randint(5, 100, 50),
+        'PM10': np.random.randint(10, 150, 50),
+        'NO2': np.random.randint(5, 80, 50),
+        'SO2': np.random.randint(1, 30, 50),
+        'CO': np.random.uniform(0.1, 2.0, 50),
+        'AQI': np.random.randint(20, 300, 50)
+    })
+    df.to_csv(DATA_FILE, index=False)
+    return df
 
 # ------------------------
 # Function to train and save model
 # ------------------------
 def train_and_save_model():
     if not os.path.exists(DATA_FILE):
-        st.error(f"Data file '{DATA_FILE}' not found. Make sure your CSV exists.")
-        st.stop()
-    
-    data = pd.read_csv(DATA_FILE)
+        st.warning(f"Data file '{DATA_FILE}' not found. Creating dummy data for testing...")
+        data = create_dummy_data()
+    else:
+        data = pd.read_csv(DATA_FILE)
     
     required_columns = ['PM2.5','PM10','NO2','SO2','CO','AQI']
     if not all(col in data.columns for col in required_columns):
